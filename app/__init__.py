@@ -4,4 +4,5 @@ import config
 app = Flask(__name__)
 app.config.from_object(config.CONF)
 from login import login
-from app.admin.controllers import controllers
+from app.admin.controllers import adminController
+from app.index.controllers import indexController
