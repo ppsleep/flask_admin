@@ -1,8 +1,11 @@
-from flask import Flask
-import config
+from app.create_app import create_app
 
-app = Flask(__name__)
-app.config.from_object(config.CONF)
-from login import login
-from app.admin.controllers import adminController
-from app.index.controllers import indexController
+app = create_app()
+
+
+def initImport():
+    from app.admin.controllers import adminController
+    from app.index.controllers import indexController
+
+
+initImport()

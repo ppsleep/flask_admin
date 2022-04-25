@@ -1,8 +1,10 @@
+from app.admin.controllers.dashboard import dashboard
+from app.admin.controllers.login import login
 from flask import Blueprint, request
 from app import app
 adminController = Blueprint("controllers", __name__)
-from app.admin.controllers.dashboard import dashboard
 app.register_blueprint(dashboard, url_prefix="/admin/dashboard")
+
 
 @app.before_request
 def init():
