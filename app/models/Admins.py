@@ -1,6 +1,5 @@
-from flask import Flask
 from sqlalchemy import Column, Integer, String
-from db import Base
+from lib.db import Base
 
 
 class Admins(Base):
