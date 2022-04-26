@@ -18,9 +18,9 @@ class News():
     def post():
         data = request.get_json()
         v = Post.from_json(data)
-        print(v.validate())
-        print(v.errors)
-        return "post"
+        if not v.validate():
+            return Msg.json(1, v.errors[next(iter(v.errors))][0])
+        return Msg.json(0)
 
     @news.route("/del/", methods=["POST"])
     def delete():

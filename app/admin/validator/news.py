@@ -13,6 +13,12 @@ class Post(Form):
             length(min=3, max=120, message="Title limits 3 - 120 characters")
         ]
     )
+    author = StringField(
+        validators=[
+            DataRequired(message="Please input author"),
+            length(min=2, max=36, message="Author limits 2 - 36 characters")
+        ]
+    )
     content = StringField(
         validators=[
             DataRequired(message="Please input contents"),
