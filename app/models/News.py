@@ -9,4 +9,5 @@ class News(Base):
     author = Column(String)
     title = Column(String)
     content = Column(String)
+    updatetime = Column(Integer)
     posttime = Column(Integer)

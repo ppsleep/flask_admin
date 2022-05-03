@@ -1,5 +1,7 @@
-from wtforms.fields import StringField
-from wtforms.validators import DataRequired, length
+from email import message
+from email.policy import default
+from wtforms.fields import StringField, IntegerField
+from wtforms.validators import DataRequired, NumberRange, length, Optional
 from wtforms import Form
 import wtforms_json
 
@@ -17,6 +19,13 @@ class Post(Form):
         validators=[
             DataRequired(message="Please input author"),
             length(min=2, max=36, message="Author limits 2 - 36 characters")
+        ]
+    )
+    tags = StringField(
+        validators=[
+            DataRequired(
+                message="Please input tags, multiple tags separated by commas"),
+            length(min=2, max=360, message="Tags limits 2 - 360 characters")
         ]
     )
     content = StringField(

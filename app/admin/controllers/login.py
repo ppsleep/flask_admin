@@ -29,7 +29,7 @@ def login():
 
     stmt = update(Admins).values(
         last_ip=request.remote_addr,
-        last_time=time.time()
+        last_time=int(time.time())
     ).where(Admins.id == result.id)
     session.execute(stmt)
     session.commit()

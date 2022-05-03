@@ -11,5 +11,10 @@ app.register_blueprint(news, url_prefix="/admin/news")
 @app.before_request
 def init():
     module = request.path.split("/")
-    # if len(module) > 1 and module[1] == "admin":
-    # return "403"
+    if len(module) > 1 and module[1] == "admin":
+        # do some permissions validation
+        # test user info
+        request.user = {
+            "id": 1,
+            "username": "admin"
+        }
