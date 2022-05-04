@@ -11,3 +11,7 @@ class News(Base):
     content = Column(String)
     updatetime = Column(Integer)
     posttime = Column(Integer)
+
+
+# def __repr__(self):
+#     return f"News(id={self.id!r}, uid={self.uid!r}, author={self.author!r}), title={self.title!r}"

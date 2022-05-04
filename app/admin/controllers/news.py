@@ -3,6 +3,7 @@ from lib.db import session
 from lib.msg import Msg
 from sqlalchemy.future import select
 from sqlalchemy import exc, insert, update, delete
+from app.models.Page import Page
 from app.models.News import News as NewsModel
 from app.models.Tags import Tags
 from app.models.NewsTag import NewsTag
@@ -15,7 +16,11 @@ news = Blueprint("news", __name__)
 class News():
     @news.route("/", methods=["POST"])
     def index():
-        return "index"
+        page = Page(NewsModel)
+        data = page.get()
+        print(type(data))
+        print(type({"a": 1}))
+        return Msg.json(0, data)
 
     @news.route("/post/", methods=["POST"])
     def post():
