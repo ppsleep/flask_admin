@@ -36,6 +36,22 @@ class News():
             return Msg.json(0, dict(news))
         return Msg.json(1, "Data does not exist")
 
+    @news.route("/del/", methods=["POST"])
+    def newsDelete():
+        post = request.get_json()
+        if "id" in post and str(post["id"]).isdigit():
+            stmt = select(NewsModel.__table__).where(
+                NewsModel.id == post["id"])
+
+            news = session.execute(stmt).first()
+            if news == None:
+                return Msg.json(1, "Data does not exist")
+            stmt = delete(NewsModel).where(NewsModel.id == post["id"])
+            session.execute(stmt)
+            session.commit()
+            return Msg.json(0)
+        return Msg.json(1, "Data does not exist")
+
     @news.route("/post/", methods=["POST"])
     def post():
         data = request.get_json()
