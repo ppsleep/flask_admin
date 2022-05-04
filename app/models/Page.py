@@ -42,3 +42,7 @@ class Page:
         self.__stmt = self.__stmt.filter_by(**where)
         self.__count = self.__count.filter_by(**where)
         return self
+
+    def like(self, field, value):
+        self.__stmt = self.__stmt.filter(field.like(f"%{value}%"))
+        return self

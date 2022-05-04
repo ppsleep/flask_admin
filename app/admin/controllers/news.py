@@ -16,11 +16,25 @@ news = Blueprint("news", __name__)
 class News():
     @news.route("/", methods=["POST"])
     def index():
+        post = request.get_json()
         page = Page(NewsModel)
+        if "title" in post and post["title"] != "":
+            page.like(NewsModel.title, post["title"])
         data = page.get()
-        print(type(data))
-        print(type({"a": 1}))
         return Msg.json(0, data)
+
+    @news.route("/view/", methods=["POST"])
+    def view():
+        post = request.get_json()
+        if "id" in post and str(post["id"]).isdigit():
+            stmt = select(NewsModel.__table__).where(
+                NewsModel.id == post["id"])
+
+            news = session.execute(stmt).first()
+            if news == None:
+                return Msg.json(1, "Data does not exist")
+            return Msg.json(0, dict(news))
+        return Msg.json(1, "Data does not exist")
 
     @news.route("/post/", methods=["POST"])
     def post():
