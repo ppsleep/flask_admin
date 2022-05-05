@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from lib.db import session
 from sqlalchemy.future import select
-from sqlalchemy import exc, insert, update, delete
+from sqlalchemy import insert, update, delete
 from app.models.Page import Page
 from app.models.News import News as NewsModel
 from app.models.Tags import Tags
@@ -20,6 +20,8 @@ class News():
     def index():
         post = request.get_json()
         page = Page(NewsModel)
+        if "author" in post and post["author"] != "":
+            page.where(NewsModel.author == post["author"])
         if "title" in post and post["title"] != "":
             page.like(NewsModel.title, post["title"])
         data = page.get()
@@ -36,7 +38,14 @@ class News():
             news = session.execute(stmt).first()
             if news == None:
                 return "Data does not exist"
-            return dict(news)
+
+            page = Page(Tags)
+            tags = page.select_from(NewsTag).join(
+                Tags, NewsTag.tag_id == Tags.id
+            ).where(NewsTag.news_id == post["id"]).all()
+            data = dict(news)
+            data["tags"] = tags
+            return data
         return "Data does not exist"
 
     @news.route("/del/", methods=["POST"])

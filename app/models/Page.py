@@ -15,16 +15,44 @@ class Page:
         self.__stmt = self.__stmt.limit(self.__limit).offset(
             self.__offset()
         )
-        results = session.execute(self.__stmt)
-        datamap = results.mappings()
+        results = session.execute(self.__stmt).mappings()
         data = []
-        for row in datamap:
+        for row in results:
             data.append(dict(row))
         return {
             "data": data,
             "page": self.__page,
             "total": count,
         }
+
+    def all(self):
+        results = session.execute(self.__stmt).mappings()
+        data = []
+        for row in results:
+            data.append(dict(row))
+        return data
+
+    def select_from(self, model):
+        self.__stmt = self.__stmt.select_from(model.__table__)
+        return self
+
+    def join(self, model, where):
+        self.__stmt = self.__stmt.join(model, where)
+        return self
+
+    def where(self, where):
+        self.__stmt = self.__stmt.where(where)
+        self.__count = self.__count.where(where)
+        return self
+
+    def filter_by(self, where):
+        self.__stmt = self.__stmt.filter_by(**where)
+        self.__count = self.__count.filter_by(**where)
+        return self
+
+    def like(self, field, value):
+        self.__stmt = self.__stmt.filter(field.like(f"%{value}%"))
+        return self
 
     def limit(self, limit):
         self.__limit = int(limit)
@@ -37,12 +65,3 @@ class Page:
                 p = int(post["page"])
                 self.__page = p if p > 0 else 1
         return (self.__page - 1) * self.__limit
-
-    def where(self, where):
-        self.__stmt = self.__stmt.filter_by(**where)
-        self.__count = self.__count.filter_by(**where)
-        return self
-
-    def like(self, field, value):
-        self.__stmt = self.__stmt.filter(field.like(f"%{value}%"))
-        return self
