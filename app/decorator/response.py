@@ -6,20 +6,14 @@ def response(fn):
     @functools.wraps(fn)
     def json(*args, **kwargs):
         data = fn(*args, **kwargs)
-        if isinstance(data, int):
-            data = str(data)
-            return jsonify({
-                "status": 0,
-                "data": ""
-            })
-        elif isinstance(data, str):
-            return jsonify({
-                "status": 1,
-                "data": data
-            })
-        return jsonify({
+        resp = {
             "status": 0,
             "data": data
-        })
+        }
+        if data == 0:
+            resp["data"] = ""
+        elif isinstance(data, str):
+            resp["status"] = 1
+        return jsonify(resp)
 
     return json
