@@ -1,6 +1,5 @@
 from flask import Blueprint, request
 from lib.db import session
-from lib.msg import Msg
 from sqlalchemy.future import select
 from sqlalchemy import exc, insert, update, delete
 from app.models.Page import Page
@@ -8,22 +7,26 @@ from app.models.News import News as NewsModel
 from app.models.Tags import Tags
 from app.models.NewsTag import NewsTag
 from app.admin.validator.news import Post
+from app.decorator import response
 import time
 
 news = Blueprint("news", __name__)
 
 
 class News():
+
     @news.route("/", methods=["POST"])
+    @response
     def index():
         post = request.get_json()
         page = Page(NewsModel)
         if "title" in post and post["title"] != "":
             page.like(NewsModel.title, post["title"])
         data = page.get()
-        return Msg.json(0, data)
+        return data
 
     @news.route("/view/", methods=["POST"])
+    @response
     def view():
         post = request.get_json()
         if "id" in post and str(post["id"]).isdigit():
@@ -32,11 +35,12 @@ class News():
 
             news = session.execute(stmt).first()
             if news == None:
-                return Msg.json(1, "Data does not exist")
-            return Msg.json(0, dict(news))
-        return Msg.json(1, "Data does not exist")
+                return "Data does not exist"
+            return dict(news)
+        return "Data does not exist"
 
     @news.route("/del/", methods=["POST"])
+    @response
     def newsDelete():
         post = request.get_json()
         if "id" in post and str(post["id"]).isdigit():
@@ -45,19 +49,20 @@ class News():
 
             news = session.execute(stmt).first()
             if news == None:
-                return Msg.json(1, "Data does not exist")
+                return "Data does not exist"
             stmt = delete(NewsModel).where(NewsModel.id == post["id"])
             session.execute(stmt)
             session.commit()
-            return Msg.json(0)
-        return Msg.json(1, "Data does not exist")
+            return 0
+        return "Data does not exist"
 
     @news.route("/post/", methods=["POST"])
+    @response
     def post():
         data = request.get_json()
         v = Post.from_json(data)
         if not v.validate():
-            return Msg.json(1, v.errors[next(iter(v.errors))][0])
+            return v.errors[next(iter(v.errors))][0]
 
         newsData = {
             "title": data["title"],
@@ -97,7 +102,7 @@ class News():
                 stmt = select(NewsModel).where(NewsModel.id == data["id"])
                 news = session.execute(stmt).scalar()
                 if news == None:
-                    return Msg.json(1, "Data does not exist")
+                    return "Data does not exist"
                 del(newsData["posttime"])
                 newsData["updatetime"] = int(time.time())
                 stmt = update(NewsModel).values(
@@ -130,9 +135,5 @@ class News():
             session.commit()
         except:
             session.rollback()
-            return Msg.json(1, "System error")
-        return Msg.json(0)
-
-    @ news.route("/del/", methods=["POST"])
-    def delete():
-        return "post"
+            return "System error"
+        return 0

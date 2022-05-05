@@ -3,29 +3,30 @@ from app import app, redis
 import bcrypt
 import time
 from lib.db import session
-from lib.msg import Msg
 from sqlalchemy.future import select
 from sqlalchemy import update
 from app.models.Admins import Admins
+from app.decorator import response
 
 login = Flask(__name__)
 
 
 @app.route("/login/login/", methods=["POST"])
+@response
 def login():
     data = request.get_json()
     if "username" not in data:
-        return Msg.json(1, "Please input username")
+        return "Please input username"
     if "password" not in data:
-        return Msg.json(1, "Please input password")
+        return "Please input password"
     stmt = select(Admins).where(Admins.username == data["username"])
     result = session.execute(stmt).scalar()
     if result == None:
-        return Msg.json(1, "Username or password is invalid")
+        return "Username or password is invalid"
     if not bcrypt.checkpw(str.encode(
         data["password"]), str.encode(result.password)
     ):
-        return Msg.json(1, "Username or password is invalid")
+        return "Username or password is invalid"
 
     stmt = update(Admins).values(
         last_ip=request.remote_addr,
@@ -42,12 +43,13 @@ def login():
         "s": secret
     }
     redis.setex(token, app.config["TOKEN_EXPIRY"], str(resp))
-    return Msg.json(0, resp)
+    return resp
 
 
 @app.route("/login/logout/", methods=["POST"])
+@response
 def logout():
     token = request.headers.get("Authorization")
     if not token == None:
         redis.delete(token)
-    return Msg.json(0)
+    return 0
