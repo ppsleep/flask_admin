@@ -1,3 +1,4 @@
+from hashlib import new
 from flask import Blueprint, request
 from lib.db import session
 from sqlalchemy.future import select
@@ -20,8 +21,9 @@ class News():
     def index():
         post = request.get_json()
         page = Page(NewsModel)
-        if "author" in post and post["author"] != "":
-            page.where(NewsModel.author == post["author"])
+        author = post.get("author", "")
+        if author != "":
+            page.where(NewsModel.author == author)
         if "title" in post and post["title"] != "":
             page.like(NewsModel.title, post["title"])
         data = page.get()
@@ -32,20 +34,22 @@ class News():
     def view():
         post = request.get_json()
         if "id" in post and str(post["id"]).isdigit():
-            stmt = select(NewsModel.__table__).where(
-                NewsModel.id == post["id"])
-
-            news = session.execute(stmt).first()
+            news = session.query(NewsModel).filter(
+                NewsModel.id == post["id"]
+            ).first()
             if news == None:
                 return "Data does not exist"
 
-            page = Page(Tags)
-            tags = page.select_from(NewsTag).join(
+            tags = session.query(Tags).select_from(
+                NewsTag
+            ).join(
                 Tags, NewsTag.tag_id == Tags.id
-            ).where(NewsTag.news_id == post["id"]).all()
-            data = dict(news)
-            data["tags"] = tags
-            return data
+            ).where(
+                NewsTag.news_id == post["id"]
+            ).all()
+
+            news.tags = tags
+            return news
         return "Data does not exist"
 
     @news.route("/del/", methods=["POST"])
