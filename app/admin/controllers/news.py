@@ -1,8 +1,5 @@
-from hashlib import new
 from flask import Blueprint, request
 from lib.db import session
-from sqlalchemy.future import select
-from sqlalchemy import insert, update, delete
 from app.models.Page import Page
 from app.models.News import News as NewsModel
 from app.models.Tags import Tags
@@ -57,14 +54,15 @@ class News():
     def newsDelete():
         post = request.get_json()
         if "id" in post and str(post["id"]).isdigit():
-            stmt = select(NewsModel.__table__).where(
-                NewsModel.id == post["id"])
-
-            news = session.execute(stmt).first()
-            if news == None:
+            newsObj = session.query(NewsModel).where(
+                NewsModel.id == post["id"]
+            )
+            if newsObj.first() == None:
                 return "Data does not exist"
-            stmt = delete(NewsModel).where(NewsModel.id == post["id"])
-            session.execute(stmt)
+            newsObj.delete()
+            session.query(NewsTag).where(
+                NewsTag.news_id == post["id"]
+            ).delete()
             session.commit()
             return 0
         return "Data does not exist"
@@ -82,69 +80,53 @@ class News():
             "uid": request.user["id"],
             "author": data["author"],
             "content": data["content"],
+            "updatetime": 0,
             "posttime": int(time.time())
         }
 
         data["tags"] = data["tags"].replace("，", ",").split(",")
         tags = [i.strip() for i in data["tags"] if i.strip() != ""]
 
-        stmt = select(Tags.name).where(Tags.name.in_(tags))
-        tagsData = session.execute(stmt).all()
+        tagsData = session.query(Tags.name).where(Tags.name.in_(tags)).all()
         tagsData = [i[0]for i in tagsData]
         newTags = list(set(tags) - set(tagsData))
-        tagsData = []
-        for i in newTags:
-            tagsData.append({"name": i})
-
+        tagsData = [Tags(name=i) for i in newTags]
         session.close()
         session.begin()
         try:
             # insert new tags
             if len(tagsData) > 0:
-                stmt = insert(Tags).values(
-                    tagsData
-                )
-                session.execute(stmt)
+                session.add_all(tagsData)
                 session.flush()
             # get all tags id
-            stmt = select(Tags.id).where(Tags.name.in_(tags))
-            tagsData = session.execute(stmt).all()
+            tagsData = session.query(Tags.id).where(Tags.name.in_(tags)).all()
             tagsData = [i[0]for i in tagsData]
             id = 0
             if "id" in data:
-                stmt = select(NewsModel).where(NewsModel.id == data["id"])
-                news = session.execute(stmt).scalar()
+                newsObj = session.query(NewsModel).where(
+                    NewsModel.id == data["id"]
+                )
+                news = newsObj.first()
                 if news == None:
                     return "Data does not exist"
                 del(newsData["posttime"])
                 newsData["updatetime"] = int(time.time())
-                stmt = update(NewsModel).values(
-                    newsData
-                ).where(NewsModel.id == news.id)
+                newsObj.update(newsData)
                 id = news.id
                 # delete old tags and news link
-                stmt = delete(NewsTag).where(NewsTag.news_id == news.id)
-                session.execute(stmt)
+                session.query(NewsTag).where(
+                    NewsTag.news_id == news.id
+                ).delete()
                 session.flush()
             else:
-                stmt = insert(NewsModel).values(
-                    newsData
-                )
-            result = session.execute(stmt)
+                newsModel = NewsModel(**newsData)
+                session.add(newsModel)
             session.flush()
-            id = id if id else result.lastrowid
+            id = id if id else newsModel.id
 
             # add tags and news link
-            news_tag = []
-            for i in tagsData:
-                news_tag.append({
-                    "news_id": id,
-                    "tag_id": i,
-                })
-            stmt = insert(NewsTag).values(
-                news_tag
-            )
-            session.execute(stmt)
+            news_tag = [NewsTag(news_id=id, tag_id=i) for i in tagsData]
+            session.add_all(news_tag)
             session.commit()
         except:
             session.rollback()

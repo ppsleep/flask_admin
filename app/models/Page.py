@@ -1,11 +1,10 @@
 from lib.db import session
 from flask import request
-from sqlalchemy.future import select
 
 
 class Page:
     def __init__(self, model):
-        self.__stmt = select(model.__table__).order_by(model.id.desc())
+        self.__stmt = session.query(model).order_by(model.id.desc())
         self.__count = session.query(model)
         self.__page = 1
         self.__limit = 10
@@ -15,25 +14,19 @@ class Page:
         self.__stmt = self.__stmt.limit(self.__limit).offset(
             self.__offset()
         )
-        results = session.execute(self.__stmt).mappings()
-        data = []
-        for row in results:
-            data.append(dict(row))
+        results = self.__stmt.all()
+
         return {
-            "data": data,
+            "data": results,
             "page": self.__page,
             "total": count,
         }
 
     def all(self):
-        results = session.execute(self.__stmt).mappings()
-        data = []
-        for row in results:
-            data.append(dict(row))
-        return data
+        return self.__stmt.all()
 
     def select_from(self, model):
-        self.__stmt = self.__stmt.select_from(model.__table__)
+        self.__stmt = self.__stmt.select_from(model)
         return self
 
     def join(self, model, where):
