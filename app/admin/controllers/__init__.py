@@ -1,13 +1,15 @@
 from app.admin.controllers.dashboard import dashboard
 from app.admin.controllers.news import news
+from app.admin.controllers.user import user
 from app.admin.controllers.login import login
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from app import app
 from app.decorator import response
 
 adminController = Blueprint("controllers", __name__)
 app.register_blueprint(dashboard, url_prefix="/admin/dashboard")
 app.register_blueprint(news, url_prefix="/admin/news")
+app.register_blueprint(user, url_prefix="/admin/user")
 
 
 @app.before_request

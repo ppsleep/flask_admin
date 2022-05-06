@@ -23,8 +23,9 @@ def login():
     result = session.execute(stmt).scalar()
     if result == None:
         return "Username or password is invalid"
-    if not bcrypt.checkpw(str.encode(
-        data["password"]), str.encode(result.password)
+    if not bcrypt.checkpw(
+        str.encode(str(data["password"])),
+        str.encode(result.password)
     ):
         return "Username or password is invalid"
 
