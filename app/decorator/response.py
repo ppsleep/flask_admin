@@ -1,5 +1,4 @@
 from flask import jsonify
-from sqlalchemy.orm import class_mapper
 import functools
 from lib.db import Base
 

@@ -4,8 +4,8 @@ from app.models.Page import Page
 from app.models.News import News as NewsModel
 from app.models.Tags import Tags
 from app.models.NewsTag import NewsTag
-from app.admin.validator.news import Post
 from app.decorator import response
+from app.decorator import validation
 import time
 
 news = Blueprint("news", __name__)
@@ -69,12 +69,9 @@ class News():
 
     @news.route("/post/", methods=["POST"])
     @response
+    @validation
     def post():
         data = request.get_json()
-        v = Post.from_json(data)
-        if not v.validate():
-            return v.errors[next(iter(v.errors))][0]
-
         newsData = {
             "title": data["title"],
             "uid": request.user["id"],

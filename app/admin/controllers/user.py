@@ -1,10 +1,8 @@
 from flask import Blueprint, request
 from lib.db import session
-from sqlalchemy.future import select
-from sqlalchemy import insert, update, delete
-from app.admin.validator.user import Password
 from app.models.Admins import Admins
 from app.decorator import response
+from app.decorator import validation
 import bcrypt
 
 user = Blueprint("user", __name__)
@@ -19,13 +17,11 @@ class User():
 
     @user.route("/password/", methods=["POST"])
     @response
+    @validation
     def password():
         data = request.get_json()
-        v = Password.from_json(data)
-        if not v.validate():
-            return v.errors[next(iter(v.errors))][0]
-        stmt = select(Admins).where(Admins.id == request.user["id"])
-        result = session.execute(stmt).scalar()
+        userObj = session.query(Admins).where(Admins.id == request.user["id"])
+        result = userObj.first()
 
         if not bcrypt.checkpw(
             str.encode(str(data["password"])),
@@ -33,11 +29,10 @@ class User():
         ):
             return "Password is invalid"
 
-        stmt = update(Admins).values(
-            password=bcrypt.hashpw(
+        userObj.update({
+            "password": bcrypt.hashpw(
                 str.encode(str(data["cpassword"])), bcrypt.gensalt()
             )
-        ).where(Admins.id == result.id)
-        session.execute(stmt)
+        })
         session.commit()
         return 0

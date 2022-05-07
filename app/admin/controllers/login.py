@@ -3,8 +3,6 @@ from app import app, redis
 import bcrypt
 import time
 from lib.db import session
-from sqlalchemy.future import select
-from sqlalchemy import update
 from app.models.Admins import Admins
 from app.decorator import response
 
@@ -19,8 +17,8 @@ def login():
         return "Please input username"
     if "password" not in data:
         return "Please input password"
-    stmt = select(Admins).where(Admins.username == data["username"])
-    result = session.execute(stmt).scalar()
+    userObj = session.query(Admins).where(Admins.username == data["username"])
+    result = userObj.first()
     if result == None:
         return "Username or password is invalid"
     if not bcrypt.checkpw(
@@ -29,11 +27,10 @@ def login():
     ):
         return "Username or password is invalid"
 
-    stmt = update(Admins).values(
-        last_ip=request.remote_addr,
-        last_time=int(time.time())
-    ).where(Admins.id == result.id)
-    session.execute(stmt)
+    userObj.update({
+        "last_ip": request.remote_addr,
+        "last_time": int(time.time())
+    })
     session.commit()
     token = bcrypt.gensalt().decode()
     secret = bcrypt.gensalt().decode()
