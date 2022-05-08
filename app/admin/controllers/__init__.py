@@ -1,10 +1,11 @@
-from app.admin.controllers.dashboard import dashboard
-from app.admin.controllers.news import news
-from app.admin.controllers.user import user
-from app.admin.controllers.login import login
-from flask import Blueprint, request
-from app import app
-from app.decorator import response
+from .dashboard import dashboard
+from .news import news
+from .user import user
+from .login import login
+from flask import Blueprint, request, jsonify
+from app import app, redis
+import jwt
+import json
 
 adminController = Blueprint("controllers", __name__)
 app.register_blueprint(dashboard, url_prefix="/admin/dashboard")
@@ -16,9 +17,28 @@ app.register_blueprint(user, url_prefix="/admin/user")
 def init():
     module = request.path.split("/")
     if len(module) > 1 and module[1] == "admin":
-        # do some permissions validation
-        # test user info
+        authorization = request.headers.get('Authorization')
+        token = request.headers.get('x-auth-token')
+
+        if token is None or authorization is None:
+            return jsonify({
+                "status": -1
+            })
+        user = redis.get(token)
+        if user is None:
+            return jsonify({
+                "status": -1
+            })
+        user = json.loads(user)
+
+        try:
+            jwt.decode(authorization, user["s"], algorithms=["HS256"])
+        except:
+            return jsonify({
+                "status": -1
+            })
+
         request.user = {
-            "id": 1,
-            "username": "admin"
+            "id": user["id"],
+            "username": user["username"]
         }

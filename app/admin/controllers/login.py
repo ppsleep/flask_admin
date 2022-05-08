@@ -1,10 +1,11 @@
 from flask import Flask, request
 from app import app, redis
-import bcrypt
-import time
 from lib.db import session
 from app.models.Admins import Admins
 from app.decorator import response
+import bcrypt
+import time
+import json
 
 login = Flask(__name__)
 
@@ -40,7 +41,7 @@ def login():
         "t": token,
         "s": secret
     }
-    redis.setex(token, app.config["TOKEN_EXPIRY"], str(resp))
+    redis.setex(token, app.config["TOKEN_EXPIRY"], json.dumps(resp))
     return resp
 
 
