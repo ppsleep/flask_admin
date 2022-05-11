@@ -3,6 +3,7 @@ import redis
 
 class Redis():
     def __init__(self, config):
+        self.__config = config
         if config["REDIS_TYPE"] == "sockt":
             self.__redis = redis.Redis(
                 unix_socket_path=config["REDIS_SOCKET"],
@@ -14,6 +15,9 @@ class Redis():
                 port=config["REDIS_PORT"],
                 db=config["REDIS_DB"]
             )
+
+    def config(self, key):
+        return self.__config[key]
 
     def set(self, key, value):
         return self.__redis.set(key, value)

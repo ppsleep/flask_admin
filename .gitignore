@@ -1,3 +1,6 @@
 __pycache__
 venv
 app/index
+up.sh
+/.ignore
+/.gitignore

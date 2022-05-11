@@ -19,10 +19,20 @@ class News():
         post = request.get_json()
         page = Page(NewsModel)
         author = post.get("author", "")
+        title = post.get("title", "")
+        tag = post.get("tag", "")
         if author != "":
             page.where(NewsModel.author == author)
-        if "title" in post and post["title"] != "":
-            page.like(NewsModel.title, post["title"])
+        if title != "":
+            page.like(NewsModel.title, title)
+        if tag != "":
+            tags = session.query(Tags).where(Tags.name == tag).first()
+            if tags is None:
+                return []
+            page.join(
+                NewsTag,
+                NewsModel.id == NewsTag.news_id
+            ).where(NewsTag.tag_id == tags.id)
         data = page.get()
         return data
 
@@ -30,10 +40,12 @@ class News():
     @response
     def view():
         post = request.get_json()
-        if "id" in post and str(post["id"]).isdigit():
+        id = post.get("id", "")
+        if id != "" and str(post["id"]).isdigit():
             news = session.query(NewsModel).filter(
                 NewsModel.id == post["id"]
             ).first()
+            session.close()
             if news == None:
                 return "Data does not exist"
 
@@ -44,8 +56,8 @@ class News():
             ).where(
                 NewsTag.news_id == post["id"]
             ).all()
-
-            news.tags = tags
+            news.tags = [i.name for i in tags]
+            session.close()
             return news
         return "Data does not exist"
 
@@ -81,7 +93,6 @@ class News():
             "posttime": int(time.time())
         }
 
-        data["tags"] = data["tags"].replace("，", ",").split(",")
         tags = [i.strip() for i in data["tags"] if i.strip() != ""]
 
         tagsData = session.query(Tags.name).where(Tags.name.in_(tags)).all()
@@ -98,10 +109,10 @@ class News():
             # get all tags id
             tagsData = session.query(Tags.id).where(Tags.name.in_(tags)).all()
             tagsData = [i[0]for i in tagsData]
-            id = 0
-            if "id" in data:
+            id = data.get("id", "")
+            if id != "":
                 newsObj = session.query(NewsModel).where(
-                    NewsModel.id == data["id"]
+                    NewsModel.id == id
                 )
                 news = newsObj.first()
                 if news == None:
@@ -128,4 +139,6 @@ class News():
         except:
             session.rollback()
             return "System error"
+        finally:
+            session.close()
         return 0

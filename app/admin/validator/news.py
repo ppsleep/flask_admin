@@ -1,4 +1,4 @@
-from wtforms.fields import StringField
+from wtforms.fields import StringField, FieldList
 from wtforms.validators import DataRequired, length
 from wtforms import Form
 import wtforms_json
@@ -19,11 +19,16 @@ class Post(Form):
             length(min=2, max=36, message="Author limits 2 - 36 characters")
         ]
     )
-    tags = StringField(
+    tags = FieldList(
+        StringField(
+            validators=[
+                DataRequired(message="Please input tags"),
+                length(min=2, max=36, message="Tag limits 2 - 36 characters")
+            ],
+        ),
         validators=[
             DataRequired(
-                message="Please input tags, multiple tags separated by commas"),
-            length(min=2, max=360, message="Tags limits 2 - 360 characters")
+                message="Please input tags")
         ]
     )
     content = StringField(
