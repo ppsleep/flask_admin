@@ -4,3 +4,6 @@ app/index
 up.sh
 /.ignore
 /.gitignore
+/static
+/admincp
+.DS_Store

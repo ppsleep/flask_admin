@@ -1,4 +1,4 @@
-from flask import Flask, current_app, request, jsonify
+from flask import Flask, request, jsonify
 from lib.redis import Redis
 import config
 

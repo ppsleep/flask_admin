@@ -4,7 +4,7 @@ import redis
 class Redis():
     def __init__(self, config):
         self.__config = config
-        if config["REDIS_TYPE"] == "sockt":
+        if config["REDIS_TYPE"] == "socket":
             self.__redis = redis.Redis(
                 unix_socket_path=config["REDIS_SOCKET"],
                 db=config["REDIS_DB"]
