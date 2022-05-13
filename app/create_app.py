@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from lib.db import db
 from lib.redis import Redis
 import config
 
@@ -11,6 +12,9 @@ class App(Flask):
         self.config.from_object(config.ProductConfig)
         ctx = self.app_context()
         ctx.push()
+
+    def initDB(self):
+        db.init_app(self)
 
     def initRedis(self):
         self.redis = Redis(config=self.config)
@@ -57,6 +61,7 @@ class App(Flask):
 def create_app():
     app = App(__name__.split('.')[0])
     app.initConfig()
+    app.initDB()
     app.initBlueprint()
     app.before_request(app.initBeforeRequest)
     app.url_map.strict_slashes = False

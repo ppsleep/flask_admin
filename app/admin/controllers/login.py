@@ -20,7 +20,8 @@ class Login():
         if "password" not in data:
             return "Please input password"
         userObj = session.query(Admins).where(
-            Admins.username == data["username"])
+            Admins.username == data["username"]
+        )
         result = userObj.first()
         if result == None:
             return "Username or password is invalid"
