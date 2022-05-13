@@ -2,8 +2,8 @@ import os
 
 
 class BaseConfig(object):
-    DB = "mysql://root:root@localhost/flask_admin?charset=utf8mb4"
-    DB_POOL_SIZE = 10
+    SQLALCHEMY_DATABASE_URI = "mysql://root:root@localhost/flask_admin?charset=utf8mb4"
+    SQLALCHEMY_POOL_SIZE = 10
     REDIS_TYPE = "socket"
     REDIS_HOST = ""
     REDIS_PORT = 6379

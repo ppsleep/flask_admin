@@ -15,7 +15,6 @@ class Page:
         )
         results = self.__stmt.all()
         session.close()
-
         return {
             "data": results,
             "page": self.__page,

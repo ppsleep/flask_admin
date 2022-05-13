@@ -45,7 +45,6 @@ class News():
             news = session.query(NewsModel).filter(
                 NewsModel.id == post["id"]
             ).first()
-            session.close()
             if news == None:
                 return "Data does not exist"
 
@@ -57,7 +56,6 @@ class News():
                 NewsTag.news_id == post["id"]
             ).all()
             news.tags = [i.name for i in tags]
-            session.close()
             return news
         return "Data does not exist"
 
@@ -125,7 +123,6 @@ class News():
                 session.query(NewsTag).where(
                     NewsTag.news_id == news.id
                 ).delete()
-                session.flush()
             else:
                 newsModel = NewsModel(**newsData)
                 session.add(newsModel)
