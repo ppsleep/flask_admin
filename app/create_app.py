@@ -59,7 +59,8 @@ class App(Flask):
 
 
 def create_app():
-    app = App(__name__.split('.')[0])
+    app = App(__name__.split('.')[
+              0], template_folder="./", static_folder="../static/")
     app.initConfig()
     app.initDB()
     app.initBlueprint()
