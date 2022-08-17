@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from lib.db import db
 from lib.redis import Redis
 import config
+import time
+import logging
 
 
 create_app = Flask(__name__)
@@ -58,13 +60,33 @@ class App(Flask):
             }
 
 
+def date(timestamp):
+    return time.strftime(
+        "%Y-%m-%d %H:%M:%S",
+        time.localtime(timestamp)
+    )
+
+
 def create_app():
-    app = App(__name__.split('.')[
-              0], template_folder="./", static_folder="../static/")
+    app = App(
+        __name__.split('.')[0], template_folder="./", static_folder="../static/"
+    )
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        handler = logging.FileHandler("./logs/logs.log")
+        logging_format = logging.Formatter(
+            "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+        )
+        handler.setFormatter(logging_format)
+        app.logger.addHandler(handler)
+        app.logger.info(e)
+
     app.initConfig()
     app.initDB()
     app.initBlueprint()
     app.before_request(app.initBeforeRequest)
     app.url_map.strict_slashes = False
+    app.jinja_env.filters['date'] = date
 
     return app

@@ -7,3 +7,4 @@ up.sh
 /static
 /admincp
 .DS_Store
+/logs

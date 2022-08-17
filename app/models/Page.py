@@ -5,7 +5,7 @@ from flask import request
 class Page:
     def __init__(self, model):
         self.__stmt = session.query(model).order_by(model.id.desc())
-        self.__page = 1
+        self.__page = self.getPage()
         self.__limit = 10
 
     def get(self):
@@ -20,6 +20,15 @@ class Page:
             "page": self.__page,
             "total": count,
         }
+
+    def page(self):
+        data = self.__stmt.paginate(
+            page=self.__page,
+            per_page=self.__limit,
+            error_out=False
+        )
+        session.close()
+        return data
 
     def all(self):
         data = self.__stmt.all()
@@ -52,10 +61,21 @@ class Page:
         self.__limit = int(limit)
         return self
 
+    def getPage(self):
+        page = 1
+        p = "1"
+        if request.is_json:
+            post = request.get_json()
+            if "page" in post:
+                p = str(post["page"])
+        else:
+            p = str(request.args.get("page"))
+
+        if p.isdigit():
+            p = int(p)
+            page = p if p > 0 else 1
+
+        return page
+
     def __offset(self):
-        post = request.get_json()
-        if "page" in post:
-            if str(post["page"]).isdigit():
-                p = int(post["page"])
-                self.__page = p if p > 0 else 1
         return (self.__page - 1) * self.__limit
